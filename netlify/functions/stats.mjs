@@ -1,9 +1,11 @@
 // «العشّاب» — إحصائيات العداد السري (للمطوّر بس، بالمفتاح)
 import { getStore } from "@netlify/blobs";
+import { createHash } from "node:crypto";
+const KEY_HASH = "3ff901de32cb393e807e12c0598552696979a926e77a21ebf5c78d03eaa356b1";
 export const config = { path: "/api/stats" };
 export default async (req) => {
   const k = new URL(req.url).searchParams.get("k") || "";
-  if (!process.env.ALASHAB_STATS_KEY || k !== process.env.ALASHAB_STATS_KEY) return new Response("", { status: 403 });
+  if (createHash("sha256").update(k).digest("hex") !== KEY_HASH) return new Response("", { status: 403 });
   const s = getStore({ name: "alashab", consistency: "strong" });
   const n = async p => (await s.list({ prefix: p })).blobs.length;
   const d = i => new Date(Date.now() - i * 864e5).toISOString().slice(0, 10);
